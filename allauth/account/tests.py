@@ -14,7 +14,11 @@ from django.test.client import RequestFactory
 from django.contrib.auth.models import AnonymousUser, AbstractUser
 from django.db import models
 
-import unittest
+import sys
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 from allauth.account.forms import BaseSignupForm
 from allauth.account.models import EmailAddress, EmailConfirmation
