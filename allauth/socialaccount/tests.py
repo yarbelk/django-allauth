@@ -23,15 +23,15 @@ from ..account.models import EmailAddress
 from ..account.utils import user_email, user_username
 from ..utils import get_user_model, get_current_site
 
-from .models import SocialAccount, SocialLogin, SocialToken, get_social_app_model
+from .models import SocialLogin, SocialToken
 from .helpers import complete_social_login
 from .views import signup
 
 import unittest
 import allauth.socialaccount.app_settings as app_settings
 
-
-
+from allauth.socialaccount.models import get_social_account_model, get_social_app_model
+SocialAccount = get_social_account_model()
 SocialApp = get_social_app_model()
 
 

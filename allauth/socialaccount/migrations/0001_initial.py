@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={
+                'swappable': 'SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL',
                 'verbose_name': 'social account',
                 'verbose_name_plural': 'social accounts',
             },
@@ -58,7 +59,7 @@ class Migration(migrations.Migration):
                 ('token', models.TextField(help_text='"oauth_token" (OAuth1) or access token (OAuth2)', verbose_name='token')),
                 ('token_secret', models.TextField(help_text='"oauth_token_secret" (OAuth1) or refresh token (OAuth2)', verbose_name='token secret', blank=True)),
                 ('expires_at', models.DateTimeField(null=True, verbose_name='expires at', blank=True)),
-                ('account', models.ForeignKey(to='socialaccount.SocialAccount')),
+                ('account', models.ForeignKey(to=settings.SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL)),
                 ('app', models.ForeignKey(to=settings.SOCIALACCOUNT_SOCIAL_APP_MODEL)),
             ],
             options={
