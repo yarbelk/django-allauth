@@ -10,7 +10,6 @@ from django.test.client import RequestFactory
 
 from allauth.socialaccount.tests import create_oauth2_tests
 from allauth.tests import MockedResponse
-from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount import providers
 from allauth.socialaccount.providers import registry
 from allauth.account import app_settings as account_settings
@@ -18,6 +17,9 @@ from allauth.account.models import EmailAddress
 from allauth.utils import get_user_model
 
 from .provider import FacebookProvider
+
+from allauth.socialaccount.models import get_social_account_model
+SocialAccount = get_social_account_model()
 
 
 @override_settings(

@@ -58,6 +58,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 SOCIALACCOUNT_SOCIAL_APP_MODEL='test_app.SocialAppSwapped'
+SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL='test_app.SocialAccountSwapped'
 
 INSTALLED_APPS = (
     'django.contrib.auth',

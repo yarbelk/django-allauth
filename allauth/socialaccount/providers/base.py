@@ -3,7 +3,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from allauth.socialaccount import app_settings
 from allauth.account.models import EmailAddress
 
-from ..models import SocialAccount, SocialLogin, get_social_app_model
+from ..models import SocialLogin, get_social_account_model, get_social_app_model
 from ..adapter import get_adapter
 
 
@@ -63,6 +63,7 @@ class Provider(object):
             social auth provider.
         :return: A populated instance of the `SocialLogin` model (unsaved).
         """
+        SocialAccount = get_social_account_model()
         adapter = get_adapter()
         uid = self.extract_uid(response)
         extra_data = self.extract_extra_data(response)

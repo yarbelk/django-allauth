@@ -17,7 +17,7 @@ except ImportError:
 from allauth.socialaccount.tests import create_oauth2_tests
 from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailConfirmation, EmailAddress
-from allauth.socialaccount.models import SocialAccount, SocialToken
+from allauth.socialaccount.models import SocialToken
 from allauth.socialaccount.providers import registry
 from allauth.tests import MockedResponse
 from allauth.account.signals import user_signed_up
@@ -29,6 +29,8 @@ from .provider import GoogleProvider
 
 import mock
 
+from allauth.socialaccount.models import get_social_account_model
+SocialAccount = get_social_account_model()
 
 @override_settings(SOCIALACCOUNT_AUTO_SIGNUP=True,
                    ACCOUNT_SIGNUP_FORM_CLASS=None,
@@ -98,6 +100,7 @@ class GoogleTests(create_oauth2_tests(registry.by_id(GoogleProvider.id))):
         self.assertEqual(user.username, 'raymond.penners')
 
     def test_email_verified(self):
+        SocialAccount = get_social_account_model()
         test_email = 'raymond.penners@gmail.com'
         self.login(self.get_mocked_response(verified_email=True))
         email_address = EmailAddress.objects \
@@ -106,7 +109,7 @@ class GoogleTests(create_oauth2_tests(registry.by_id(GoogleProvider.id))):
         self.assertFalse(EmailConfirmation.objects
                          .filter(email_address__email=test_email)
                          .exists())
-        account = email_address.user.socialaccount_set.all()[0]
+        account = SocialAccount.objects.filter(user=email_address.user)[0]
         self.assertEqual(account.extra_data['given_name'], 'Raymond')
 
     def test_user_signed_up_signal(self):

@@ -22,6 +22,7 @@ from . import app_settings
 from . import providers
 from .fields import JSONField
 from ..utils import get_request_param
+from django.conf import settings
 
 try:
     from django.apps.apps import get_model
@@ -41,6 +42,18 @@ def get_social_app_model():
         raise ImproperlyConfigured("SOCIAL_APP_MODEL must be of the form 'app_label.model_name'")
     except LookupError:
         raise ImproperlyConfigured("SOCIAL_APP_MODEL refers to model '%s' that has not been installed" % app_settings.SOCIAL_APP_MODEL)
+
+
+def get_social_account_model():
+    """
+    Returns the SocialAccount model that is active in this project.
+    """
+    try:
+        return get_model(app_settings.SOCIAL_ACCOUNT_MODEL)
+    except ValueError:
+        raise ImproperlyConfigured("SOCIAL_ACCOUNT_MODEL must be of the form 'app_label.model_name'")
+    except LookupError:
+        raise ImproperlyConfigured("SOCIAL_ACCOUNT_MODEL refers to model '%s' that has not been installed" % app_settings.SOCIAL_ACCOUNT_MODEL)
 
 
 class SocialAppManager(models.Manager):
@@ -104,8 +117,8 @@ class SocialApp(SocialAppABC):
 
 
 @python_2_unicode_compatible
-class SocialAccount(models.Model):
-    user = models.ForeignKey(allauth.app_settings.USER_MODEL)
+class SocialAccountABC(models.Model):
+    user = models.ForeignKey(allauth.app_settings.USER_MODEL, related_name="%(app_label)s_%(class)s_set" )
     provider = models.CharField(verbose_name=_('provider'),
                                 max_length=30,
                                 choices=providers.registry.as_choices())
@@ -135,6 +148,7 @@ class SocialAccount(models.Model):
         unique_together = ('provider', 'uid')
         verbose_name = _('social account')
         verbose_name_plural = _('social accounts')
+        abstract = True
 
     def authenticate(self):
         return authenticate(account=self)
@@ -154,11 +168,18 @@ class SocialAccount(models.Model):
     def get_provider_account(self):
         return self.get_provider().wrap_account(self)
 
+# for django 1.4 compat
+SocialAccountABC._meta.swappable = 'SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL'
+
+
+class SocialAccount(SocialAccountABC):
+    pass
+
 
 @python_2_unicode_compatible
 class SocialToken(models.Model):
     app = models.ForeignKey(app_settings.SOCIAL_APP_MODEL)
-    account = models.ForeignKey(SocialAccount)
+    account = models.ForeignKey(app_settings.SOCIAL_ACCOUNT_MODEL)
     token = models.TextField(
         verbose_name=_('token'),
         help_text=_(
@@ -232,7 +253,7 @@ class SocialLogin(object):
 
     @classmethod
     def deserialize(cls, data):
-        account = deserialize_instance(SocialAccount, data['account'])
+        account = deserialize_instance(get_social_account_model(), data['account'])
         user = deserialize_instance(get_user_model(), data['user'])
         if 'token' in data:
             token = deserialize_instance(SocialToken, data['token'])
@@ -282,7 +303,7 @@ class SocialLogin(object):
         """
         assert not self.is_existing
         try:
-            a = SocialAccount.objects.get(provider=self.account.provider,
+            a = get_social_account_model().objects.get(provider=self.account.provider,
                                           uid=self.account.uid)
             # Update account
             a.extra_data = self.account.extra_data
@@ -306,7 +327,7 @@ class SocialLogin(object):
                 except SocialToken.DoesNotExist:
                     self.token.account = a
                     self.token.save()
-        except SocialAccount.DoesNotExist:
+        except get_social_account_model().DoesNotExist:
             pass
 
     def get_redirect_url(self, request):
