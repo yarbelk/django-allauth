@@ -5,8 +5,19 @@ from allauth.socialaccount.providers import registry
 
 from .provider import TwitterProvider
 
+from allauth.socialaccount.models import get_social_app_model
+from allauth.utils import get_user_model, get_current_site
 
 class TwitterTests(create_oauth_tests(registry.by_id(TwitterProvider.id))):
+    def setUp(self):
+        SocialApp = get_social_app_model()
+        app = SocialApp.objects.create(provider=TwitterProvider.id,
+                                       name=TwitterProvider.id,
+                                       client_id='app123id',
+                                       key='key',
+                                       secret='dummy')
+        app.sites.add(get_current_site())
+
     def get_mocked_response(self):
         # FIXME: Replace with actual/complete Twitter response
         return [MockedResponse(200, r"""

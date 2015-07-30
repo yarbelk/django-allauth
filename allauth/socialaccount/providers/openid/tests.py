@@ -9,11 +9,22 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 
 from allauth.utils import get_user_model
+from allauth.socialaccount.models import get_social_app_model
 
 from . import views
 from .utils import AXAttribute
 
+from allauth.utils import get_user_model, get_current_site
+
 class OpenIDTests(TestCase):
+    def setUp(self):
+        SocialApp = get_social_app_model()
+        app = SocialApp.objects.create(provider='openid',
+                                       name='openid',
+                                       client_id='app123id',
+                                       key='openid',
+                                       secret='dummy')
+        app.sites.add(get_current_site())
 
     def test_discovery_failure(self):
         """

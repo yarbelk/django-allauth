@@ -143,6 +143,7 @@ class SocialAccountABC(models.Model):
     date_joined = models.DateTimeField(verbose_name=_('date joined'),
                                        auto_now_add=True)
     extra_data = JSONField(verbose_name=_('extra data'), default='{}')
+    app = models.ForeignKey(settings.SOCIALACCOUNT_SOCIAL_APP_MODEL)
 
     class Meta:
         unique_together = ('provider', 'uid')
@@ -227,7 +228,7 @@ class SocialLogin(object):
     e-mail addresses retrieved from the provider.
     """
 
-    def __init__(self, user=None, account=None, token=None,
+    def __init__(self, user=None, account=None, token=None, request=None,
                  email_addresses=[]):
         if token:
             assert token.account is None or token.account == account
@@ -276,10 +277,16 @@ class SocialLogin(object):
         Saves a new account. Note that while the account is new,
         the user may be an existing one (when connecting accounts)
         """
+        SocialApp = get_social_app_model()
+        SocialAccount = get_social_account_model()
         assert not self.is_existing
+        app = SocialApp.objects.get_current(provider=self.account.provider,
+                                            request=request)
+        self.request = request
         user = self.user
         user.save()
         self.account.user = user
+        self.account.app = app
         self.account.save()
         if app_settings.STORE_TOKENS and self.token:
             self.token.account = self.account
@@ -297,14 +304,17 @@ class SocialLogin(object):
         """
         return self.account.pk
 
-    def lookup(self):
+    def lookup(self, request):
         """
         Lookup existing account, if any.
         """
+        SocialApp = get_social_app_model()
+        SocialAccount = get_social_account_model()
         assert not self.is_existing
         try:
-            a = get_social_account_model().objects.get(provider=self.account.provider,
-                                          uid=self.account.uid)
+            app = SocialApp.objects.get_current(provider=self.account.provider,
+                                                request=request)
+            a = SocialAccount.objects.get(app=app, uid=self.account.uid)
             # Update account
             a.extra_data = self.account.extra_data
             self.account = a
@@ -327,8 +337,11 @@ class SocialLogin(object):
                 except SocialToken.DoesNotExist:
                     self.token.account = a
                     self.token.save()
-        except get_social_account_model().DoesNotExist:
+        except SocialAccount.DoesNotExist:
             pass
+        except SocialApp.DoesNotExist:
+            logger.debug("Couldn't find SocialApp {}".format(self.account.provider))
+            raise
 
     def get_redirect_url(self, request):
         url = self.state.get('next')
@@ -340,6 +353,7 @@ class SocialLogin(object):
         next_url = get_next_redirect_url(request)
         if next_url:
             state['next'] = next_url
+        state['site'] = get_current_site(request).id
         state['process'] = get_request_param(request, 'process', 'login')
         state['scope'] = get_request_param(request, 'scope', '')
         state['auth_params'] = get_request_param(request, 'auth_params', '')
