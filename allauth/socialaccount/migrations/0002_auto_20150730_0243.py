@@ -22,13 +22,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='socialaccount',
             name='app',
-            field=models.ForeignKey(null=True, to='socialaccount.SocialApp'),
+            field=models.ForeignKey(null=True, to=settings.SOCIALACCOUNT_SOCIAL_APP_MODEL),
         ),
-        migrations.RunPython(set_social_app),
+        migrations.RunPython(set_social_app, lambda x, y: None),
         migrations.AlterField(
             model_name='socialaccount',
             name='app',
-            field=models.ForeignKey(null=False, to='socialaccount.SocialApp'),
+            field=models.ForeignKey(null=False, to=settings.SOCIALACCOUNT_SOCIAL_APP_MODEL),
         ),
         migrations.AlterField(
             model_name='socialaccount',
@@ -44,5 +44,9 @@ class Migration(migrations.Migration):
             model_name='socialapp',
             name='provider',
             field=models.CharField(max_length=30, choices=[('vk', 'VK'), ('tumblr', 'Tumblr'), ('instagram', 'Instagram'), ('linkedin_oauth2', 'LinkedIn'), ('google', 'Google'), ('github', 'GitHub'), ('dropbox', 'Dropbox'), ('angellist', 'AngelList'), ('soundcloud', 'SoundCloud'), ('xing', 'Xing'), ('stackexchange', 'Stack Exchange'), ('vimeo', 'Vimeo'), ('dropbox_oauth2', 'Dropbox'), ('hubic', 'Hubic'), ('spotify', 'Spotify'), ('facebook', 'Facebook'), ('feedly', 'Feedly'), ('bitly', 'Bitly'), ('bitbucket', 'Bitbucket'), ('mailru', 'Mail.RU'), ('amazon', 'Amazon'), ('persona', 'Persona'), ('openid', 'OpenID'), ('odnoklassniki', 'Odnoklassniki'), ('windowslive', 'Live'), ('baidu', 'Baidu'), ('coinbase', 'Coinbase'), ('twitter', 'Twitter'), ('flickr', 'Flickr'), ('linkedin', 'LinkedIn'), ('twitch', 'Twitch'), ('orcid', 'Orcid.org'), ('weibo', 'Weibo'), ('foursquare', 'Foursquare'), ('douban', 'Douban'), ('evernote', 'Evernote'), ('paypal', 'Paypal')], verbose_name='provider'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='socialaccount',
+            unique_together=set([('app', 'uid')]),
         ),
     ]
