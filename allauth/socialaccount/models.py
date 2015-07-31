@@ -146,7 +146,7 @@ class SocialAccountABC(models.Model):
     app = models.ForeignKey(settings.SOCIALACCOUNT_SOCIAL_APP_MODEL)
 
     class Meta:
-        unique_together = ('provider', 'uid')
+        unique_together = ('app', 'uid')
         verbose_name = _('social account')
         verbose_name_plural = _('social accounts')
         abstract = True
