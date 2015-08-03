@@ -18,6 +18,13 @@ Welcome to django-allauth!
 .. image:: https://pennersr.github.io/img/bitcoin-badge.svg
    :target: https://blockchain.info/address/1AJXuBMPHkaDCNX2rwAy34bGgs7hmrePEr
 
+This is a fork of https://github.com/pennersr/django-allauth that
+is focused on supporting multiple `SocialApp`'s of the same type.
+I.E, allow you to authenticate against multiple Facebook Pages as well
+as multiple types of authenticators (providers - IE. G+, Facebook & Twitter).
+
+It also adds basic swappable models for SocialApp.
+
 Integrated set of Django applications addressing authentication,
 registration, account management as well as 3rd party (social) account
 authentication.
@@ -64,7 +71,6 @@ authentication, with flows that just work.
 Commercial Support
 ==================
 
-This project is sponsored by IntenCT_. If you require assistance on
-your project(s), please contact us: info@intenct.nl.
-
-.. _IntenCT: http://www.intenct.info
+This project is based off of https://github.com/pennersr/django-allauth
+They have an option for commercial support of that version.  If you are 
+interested in that, please go there and enquire
