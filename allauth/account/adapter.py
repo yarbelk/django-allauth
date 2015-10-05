@@ -61,7 +61,10 @@ class DefaultAccountAdapter(object):
             prefix = "[{name}] ".format(name=site.name)
         return prefix + force_text(subject)
 
-    def render_mail(self, template_prefix, email, context):
+    def get_from_email(self, request):
+        return settings.DEFAULT_FROM_EMAIL
+
+    def render_mail(self, template_prefix, email, context, request):
         """
         Renders an e-mail to `email`.  `template_prefix` identifies the
         e-mail that is to be sent, e.g. "account/email/email_confirmation"
@@ -71,6 +74,8 @@ class DefaultAccountAdapter(object):
         # remove superfluous line breaks
         subject = " ".join(subject.splitlines()).strip()
         subject = self.format_email_subject(subject)
+
+        sender_email = self.get_from_email(request)
 
         bodies = {}
         for ext in ['html', 'txt']:
@@ -85,20 +90,20 @@ class DefaultAccountAdapter(object):
         if 'txt' in bodies:
             msg = EmailMultiAlternatives(subject,
                                          bodies['txt'],
-                                         settings.DEFAULT_FROM_EMAIL,
+                                         sender_email,
                                          [email])
             if 'html' in bodies:
                 msg.attach_alternative(bodies['html'], 'text/html')
         else:
             msg = EmailMessage(subject,
                                bodies['html'],
-                               settings.DEFAULT_FROM_EMAIL,
+                               sender_email,
                                [email])
             msg.content_subtype = 'html'  # Main content is now text/html
         return msg
 
-    def send_mail(self, template_prefix, email, context):
-        msg = self.render_mail(template_prefix, email, context)
+    def send_mail(self, template_prefix, email, context, request):
+        msg = self.render_mail(template_prefix, email, context, request)
         msg.send()
 
     def get_login_redirect_url(self, request):
@@ -352,7 +357,8 @@ class DefaultAccountAdapter(object):
             email_template = 'account/email/email_confirmation'
         get_adapter().send_mail(email_template,
                                 emailconfirmation.email_address.email,
-                                ctx)
+                                ctx,
+                                request)
 
 
 def get_adapter():
