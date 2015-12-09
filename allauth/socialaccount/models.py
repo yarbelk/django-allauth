@@ -25,7 +25,8 @@ from ..utils import get_request_param
 from django.conf import settings
 
 try:
-    from django.apps.apps import get_model
+    from django.apps import apps
+    get_model = apps.get_model
 except ImportError:
     from django.db.models import get_model as _get_model
     def get_model(model_string):
