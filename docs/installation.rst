@@ -80,6 +80,7 @@ settings.py (Important - Please note 'django.contrib.sites' is required as INSTA
         'allauth.socialaccount.providers.soundcloud',
         'allauth.socialaccount.providers.spotify',
         'allauth.socialaccount.providers.stackexchange',
+        'allauth.socialaccount.providers.stripe',
         'allauth.socialaccount.providers.tumblr',
         'allauth.socialaccount.providers.twitch',
         'allauth.socialaccount.providers.twitter',
@@ -94,11 +95,11 @@ settings.py (Important - Please note 'django.contrib.sites' is required as INSTA
 
 urls.py::
 
-    urlpatterns = patterns('',
+    urlpatterns = [
         ...
-        (r'^accounts/', include('allauth.urls')),
+        url(r'^accounts/', include('allauth.urls')),
         ...
-    )
+    ]
 
 
 Post-Installation

@@ -1,14 +1,10 @@
-try:
-    from mock import patch
-except ImportError:
-    from unittest.mock import patch
-
-from django.test import TestCase
 from django.test.utils import override_settings
 from django.core.urlresolvers import reverse
 
 from allauth.socialaccount.models import get_social_app_model
 from allauth.utils import get_user_model, get_current_site
+from allauth.utils import get_user_model
+from allauth.tests import TestCase, patch
 
 SOCIALACCOUNT_PROVIDERS = {'persona':
                            {'AUDIENCE': 'https://www.example.com:433'}}
@@ -33,8 +29,9 @@ class PersonaTests(TestCase):
                 'status': 'okay',
                 'email': 'persona@mail.com'
             }
+
             resp = self.client.post(reverse('persona_login'),
                                     dict(assertion='dummy'))
-            self.assertEqual('http://testserver/accounts/profile/',
-                             resp['location'])
+            self.assertRedirects(resp, '/accounts/profile/',
+                                 fetch_redirect_response=False)
             get_user_model().objects.get(email='persona@mail.com')

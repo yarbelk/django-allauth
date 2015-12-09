@@ -33,6 +33,7 @@ class Provider(object):
         raise NotImplementedError("get_login_url() for " + self.name)
 
     def get_app(self, request):
+        #NOTE: Avoid loading models at top due to registry boot...
         return get_social_app_model().objects.get_current(self.id, request=request)
 
     def media_js(self, request):
@@ -63,7 +64,9 @@ class Provider(object):
             social auth provider.
         :return: A populated instance of the `SocialLogin` model (unsaved).
         """
+        # NOTE: Avoid loading models at top due to registry boot...
         SocialAccount = get_social_account_model()
+
         adapter = get_adapter()
         uid = self.extract_uid(response)
         extra_data = self.extract_extra_data(response)
