@@ -374,7 +374,6 @@ def user_pk_to_url_str(user):
     if (hasattr(models, 'UUIDField')
             and issubclass(type(User._meta.pk), models.UUIDField)):
         return user.pk.hex
-
     ret = user.pk
     if isinstance(ret, six.integer_types):
         ret = int_to_base36(user.pk)
@@ -385,8 +384,7 @@ def url_str_to_user_pk(s):
     User = get_user_model()
     # TODO: Ugh, isn't there a cleaner way to determine whether or not
     # the PK is a str-like field?
-    if (hasattr(models, 'UUIDField')
-            and issubclass(type(User._meta.pk), models.UUIDField)):
+    if hasattr(models, 'UUIDField') and issubclass(type(User._meta.pk), models.UUIDField):
         return s
     try:
         User._meta.pk.to_python('a')
