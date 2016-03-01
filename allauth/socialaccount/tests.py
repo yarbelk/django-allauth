@@ -23,11 +23,10 @@ from ..account.models import EmailAddress
 from ..account.utils import user_email, user_username
 from ..utils import get_user_model, get_current_site
 
-from .models import SocialLogin, SocialToken
+from .models import SocialLogin, SocialToken, get_social_account_model, get_social_app_model
 from .helpers import complete_social_login
 from .views import signup
 
-from allauth.socialaccount.models import get_social_account_model, get_social_app_model
 import unittest
 
 from allauth.socialaccount import providers
@@ -441,20 +440,10 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
                given_name,
                (repr(verified_email).lower())))
 
-    @override_settings(
-        SOCIALACCOUNT_AUTO_SIGNUP=True,
-        ACCOUNT_SIGNUP_FORM_CLASS=None,
-        ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
-    )
     def test_get_social_app_model(self):
         from allauth.socialaccount.test_app.models import SocialAppSwapped
         self.assertEqual(get_social_app_model(), SocialAppSwapped)
 
-    @override_settings(
-        SOCIALACCOUNT_AUTO_SIGNUP=True,
-        ACCOUNT_SIGNUP_FORM_CLASS=None,
-        ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
-    )
     def test_swap_in_new_social_app(self):
         SocialApp = get_social_app_model()
         app = SocialApp.objects.filter(provider=self.provider.id).first()
@@ -474,3 +463,8 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
             token='abc',
             account=account)
         self.assertEquals(app.new_field, 'testing')
+        self.assertEquals(token.app, app)
+
+        ## Just to explicitly test that the swapped app is called
+        from allauth.socialaccount.test_app.models import SocialAppSwapped
+        self.assertTrue(isinstance(app, SocialAppSwapped))
