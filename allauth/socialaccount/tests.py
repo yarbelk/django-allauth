@@ -241,6 +241,21 @@ def create_oauth2_tests(provider):
 
 
 class SocialAccountTests(TestCase):
+    def setUp(self):
+        app1 = SocialApp.objects.create(provider='openid',
+                                       name='openid',
+                                       client_id='app123id',
+                                       key='openid',
+                                       secret='dummy')
+        app1.sites.add(get_current_site())
+        app1.save()
+        app2 = SocialApp.objects.create(provider='twitter',
+                                       name='twitter',
+                                       client_id='app123id',
+                                       key='twitter',
+                                       secret='dummy')
+        app2.sites.add(get_current_site())
+        app2.save()
 
     @override_settings(
         SOCIALACCOUNT_AUTO_SIGNUP=True,
@@ -419,6 +434,7 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
                                        new_field="testing",
                                        secret='dummy')
         app.sites.add(get_current_site())
+        app.save()
 
     def get_mocked_response(self,
                             family_name='Penners',
@@ -456,6 +472,7 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
             email=email)
         account = SocialAccount.objects.create(
             user=user,
+            app=app,
             provider=self.provider.id,
             uid='123')
         token = SocialToken.objects.create(
