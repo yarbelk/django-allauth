@@ -7,9 +7,6 @@ from ..models import SocialAccount, SocialLogin, get_social_app_model
 from ..adapter import get_adapter
 
 
-SocialApp = get_social_app_model()
-
-
 class AuthProcess(object):
     LOGIN = 'login'
     CONNECT = 'connect'
@@ -36,10 +33,7 @@ class Provider(object):
         raise NotImplementedError("get_login_url() for " + self.name)
 
     def get_app(self, request):
-        # NOTE: Avoid loading models at top due to registry boot...
-        SocialApp = get_social_app_model()
-
-        return SocialApp.objects.get_current(self.id, request)
+        return get_social_app_model().objects.get_current(self.id)
 
     def media_js(self, request):
         """

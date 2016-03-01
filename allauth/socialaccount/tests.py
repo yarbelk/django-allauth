@@ -225,6 +225,7 @@ class OAuth2TestsMixin(object):
 # For backward-compatibility with third-party provider tests that call
 # create_oauth2_tests() rather than using the mixin directly.
 def create_oauth2_tests(provider):
+    registry.load()
     class Class(OAuth2TestsMixin, TestCase):
         provider_id = provider.id
     Class.__name__ = 'OAuth2Tests_' + provider.id
@@ -388,3 +389,61 @@ class SocialAccountTests(TestCase):
         MessageMiddleware().process_request(request)
         resp = complete_social_login(request, sociallogin)
         return request, resp
+
+
+## Importing here as these are WIP
+
+from django.conf import settings
+from allauth.socialaccount.providers import registry
+installed_apps = settings.INSTALLED_APPS
+from django.db import connection
+
+@override_settings(
+    SOCIALACCOUNT_AUTO_SIGNUP=True,
+    ACCOUNT_SIGNUP_FORM_CLASS=None,
+    ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
+)
+class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
+    provider_id = 'google'
+
+    def setUp(self):
+        with override_settings( SOCIALACCOUNT_SOCIAL_APP_MODEL='test_app.SocialAppSwapped',):
+            # # name = settings.DATABASES
+            # connection.creation.destroy_test_db('default')
+            # connection.creation.connection.connect()
+            # connection.creation.create_test_db()
+            # # create_test_db
+            self.provider = providers.registry.by_id(self.provider_id)
+            SocialApp = get_social_app_model()
+            app = SocialApp.objects.create(provider=self.provider.id,
+                                           name=self.provider.id,
+                                           client_id='app123id',
+                                           key=self.provider.id,
+                                           new_field="testing",
+                                           secret='dummy')
+            app.sites.add(get_current_site())
+
+    def get_mocked_response(self,
+                            family_name='Penners',
+                            given_name='Raymond',
+                            name='Raymond Penners',
+                            email='raymond.penners@gmail.com',
+                            verified_email=True):
+        return MockedResponse(200, """
+              {"family_name": "%s", "name": "%s",
+               "picture": "https://lh5.googleusercontent.com/-GOFYGBVOdBQ/AAAAAAAAAAI/AAAAAAAAAGM/WzRfPkv4xbo/photo.jpg",
+               "locale": "nl", "gender": "male",
+               "email": "%s",
+               "link": "https://plus.google.com/108204268033311374519",
+               "given_name": "%s", "id": "108204268033311374519",
+               "verified_email": %s }
+        """ % (family_name,
+               name,
+               email,
+               given_name,
+               (repr(verified_email).lower())))
+
+    def test_swap_in_new_social_app(self):
+        SocialApp = get_social_app_model()
+        app = SocialApp.objects.filter(provider=self.provider.id).first()
+        self.assertEquals(app.new_field, 'testing')
