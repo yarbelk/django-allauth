@@ -454,7 +454,8 @@ class ResetPasswordForm(forms.Form):
                 context['username'] = user_username(user)
             get_adapter().send_mail('account/email/password_reset_key',
                                     email,
-                                    context)
+                                    context,
+                                    request)
         return self.cleaned_data["email"]
 
 
