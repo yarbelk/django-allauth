@@ -147,7 +147,8 @@ class SocialAccountABC(models.Model):
 
     class Meta:
         swappable = 'SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL'
-        unique_together = ('provider', 'uid')
+        # XXX This is a question; this has changed from provider to app and the migrations might be a problem.
+        unique_together = ('app', 'uid')
         verbose_name = _('social account')
         verbose_name_plural = _('social accounts')
         abstract = True
