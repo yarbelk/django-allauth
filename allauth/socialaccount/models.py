@@ -137,7 +137,8 @@ class SocialAccountABC(models.Model):
     # [2] http://openid.net/specs/openid-authentication-1_1.html#limits
 
     uid = models.CharField(verbose_name=_('uid'),
-                           max_length=app_settings.UID_MAX_LENGTH)
+                           max_length=app_settings.UID_MAX_LENGTH,
+                           db_index=True)
     last_login = models.DateTimeField(verbose_name=_('last login'),
                                       auto_now=True)
     date_joined = models.DateTimeField(verbose_name=_('date joined'),
