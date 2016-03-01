@@ -74,8 +74,7 @@ class AppSettings(object):
         This cannot be changed after the initial migration, or there will
         be errors.
         """
-        return self._setting("SOCIAL_APP_MODEL",
-                             "socialaccount.SocialApp")
+        return self._setting("SOCIAL_APP_MODEL", "socialaccount.SocialApp")
 
     @property
     def SOCIAL_ACCOUNT_MODEL(self):

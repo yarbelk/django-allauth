@@ -29,7 +29,8 @@ try:
 except ImportError:
     from django.db.models import get_model as _get_model
     def get_model(model_string):
-        return _get_model(*model_string.split('.'))
+        app, model = model_string.split('.')
+        return _get_model(app, model)
 
 def get_social_app_model():
     """
@@ -48,7 +49,7 @@ def get_social_account_model():
     Returns the SocialAccount model that is active in this project.
     """
     try:
-        return django_apps.get_model(app_settings.SOCIAL_ACCOUNT_MODEL)
+        return get_model(app_settings.SOCIAL_ACCOUNT_MODEL)
     except ValueError:
         raise ImproperlyConfigured("SOCIAL_ACCOUNT_MODEL must be of the form 'app_label.model_name'")
     except LookupError:
@@ -58,16 +59,16 @@ def get_social_account_model():
 class SocialAppManager(models.Manager):
     def get_current(self, provider, request=None):
         site = get_current_site(request)
-        try:
-            return self.get(sites__id=site.id,
-                            provider=provider)
-        except:
-            print(locals())
-            raise
+        return self.get(sites__id=site.id,
+                        provider=provider)
 
 
 @python_2_unicode_compatible
 class SocialAppABC(models.Model):
+    """
+    Abstract base class for SocialApp.  This makes it easier to swap out the SocialApp
+    with one of your own implementation.
+    """
     objects = SocialAppManager()
 
     provider = models.CharField(verbose_name=_('provider'),
@@ -93,6 +94,7 @@ class SocialAppABC(models.Model):
     sites = models.ManyToManyField(Site, blank=True)
 
     class Meta:
+        swappable = 'SOCIALACCOUNT_SOCIAL_APP_MODEL'
         abstract = True
         verbose_name = _('social application')
         verbose_name_plural = _('social applications')
@@ -101,11 +103,13 @@ class SocialAppABC(models.Model):
         return self.name
 
 
-# for django 1.4 compat
-SocialAppABC._meta.swappable = 'SOCIALACCOUNT_SOCIAL_APP_MODEL'
-
-
 class SocialApp(SocialAppABC):
+    """
+    Concrete SocialApp, and the default for `SOCIALACCOUNT_SOCIAL_APP_MODEL`.
+    This is `swappable`, but just as with `AUTH_USER`, if you want to replace
+    it, the new model must be in your first migration, or you will have a nightmare
+    of SQL migrations to write to change everything.
+    """
     pass
 
 
@@ -140,6 +144,7 @@ class SocialAccountABC(models.Model):
     extra_data = JSONField(verbose_name=_('extra data'), default=dict)
 
     class Meta:
+        swappable = 'SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL'
         unique_together = ('provider', 'uid')
         verbose_name = _('social account')
         verbose_name_plural = _('social accounts')
@@ -162,9 +167,6 @@ class SocialAccountABC(models.Model):
 
     def get_provider_account(self):
         return self.get_provider().wrap_account(self)
-
-# for django 1.4 compat
-SocialAccountABC._meta.swappable = 'SOCIALACCOUNT_SOCIAL_ACCOUNT_MODEL'
 
 
 class SocialAccount(SocialAccountABC):

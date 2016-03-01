@@ -6,6 +6,7 @@ from allauth.socialaccount import app_settings
 from django.conf import settings
 import allauth.socialaccount.fields
 from allauth.socialaccount.providers import registry
+from allauth.socialaccount import app_settings
 
 
 class Migration(migrations.Migration):

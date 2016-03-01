@@ -6,13 +6,16 @@ except ImportError:
 import warnings
 import json
 
-from django.test.utils import override_settings
-from django.core.urlresolvers import reverse
-from django.test.client import RequestFactory
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.auth.models import AnonymousUser
-from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.test import TestCase, SimpleTestCase
+from django.test.client import RequestFactory
+from django.test.utils import override_settings
+
+from allauth.socialaccount.providers import registry
 
 from ..tests import MockedResponse, mocked_response, TestCase
 from ..account import app_settings as account_settings
@@ -25,6 +28,7 @@ from .helpers import complete_social_login
 from .views import signup
 
 from allauth.socialaccount.models import get_social_account_model, get_social_app_model
+import unittest
 
 from allauth.socialaccount import providers
 
@@ -159,9 +163,10 @@ class OAuth2TestsMixin(object):
         self.assertRedirects(resp, reverse('socialaccount_signup'))
 
     def test_account_tokens(self, multiple_login=False):
-        email = 'some@mail.com'
+        username = str(random.randrange(1000, 10000000))
+        email = '%s@mail.com' % username
         user = get_user_model().objects.create(
-            username='user',
+            username=username,
             is_active=True,
             email=email)
         user.set_password('test')
@@ -230,7 +235,6 @@ class OAuth2TestsMixin(object):
 # For backward-compatibility with third-party provider tests that call
 # create_oauth2_tests() rather than using the mixin directly.
 def create_oauth2_tests(provider):
-    registry.load()
     class Class(OAuth2TestsMixin, TestCase):
         provider_id = provider.id
     Class.__name__ = 'OAuth2Tests_' + provider.id
@@ -396,37 +400,26 @@ class SocialAccountTests(TestCase):
         return request, resp
 
 
-## Importing here as these are WIP
-
-from django.conf import settings
-from allauth.socialaccount.providers import registry
-installed_apps = settings.INSTALLED_APPS
-from django.db import connection
-
 @override_settings(
     SOCIALACCOUNT_AUTO_SIGNUP=True,
     ACCOUNT_SIGNUP_FORM_CLASS=None,
     ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
 )
+@unittest.skipIf(settings.SOCIALACCOUNT_SOCIAL_APP_MODEL == 'socialaccount.SocialApp',
+                 'default SocialApp model, do not test swapping')
 class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
     provider_id = 'google'
 
     def setUp(self):
-        with override_settings( SOCIALACCOUNT_SOCIAL_APP_MODEL='test_app.SocialAppSwapped',):
-            # # name = settings.DATABASES
-            # connection.creation.destroy_test_db('default')
-            # connection.creation.connection.connect()
-            # connection.creation.create_test_db()
-            # # create_test_db
-            self.provider = providers.registry.by_id(self.provider_id)
-            SocialApp = get_social_app_model()
-            app = SocialApp.objects.create(provider=self.provider.id,
-                                           name=self.provider.id,
-                                           client_id='app123id',
-                                           key=self.provider.id,
-                                           new_field="testing",
-                                           secret='dummy')
-            app.sites.add(get_current_site())
+        self.provider = providers.registry.by_id(self.provider_id)
+        SocialApp = get_social_app_model()
+        app = SocialApp.objects.create(provider=self.provider.id,
+                                       name=self.provider.id,
+                                       client_id='app123id',
+                                       key=self.provider.id,
+                                       new_field="testing",
+                                       secret='dummy')
+        app.sites.add(get_current_site())
 
     def get_mocked_response(self,
                             family_name='Penners',
