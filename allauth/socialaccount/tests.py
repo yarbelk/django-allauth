@@ -20,11 +20,16 @@ from ..account.models import EmailAddress
 from ..account.utils import user_email, user_username
 from ..utils import get_user_model, get_current_site
 
-from .models import SocialAccount, SocialLogin, get_social_app_model
+from .models import SocialLogin, SocialToken
 from .helpers import complete_social_login
 from .views import signup
-from . import providers
 
+from allauth.socialaccount.models import get_social_account_model, get_social_app_model
+
+from allauth.socialaccount import providers
+
+
+SocialAccount = get_social_account_model()
 SocialApp = get_social_app_model()
 
 class OAuthTestsMixin(object):
@@ -443,7 +448,36 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
                given_name,
                (repr(verified_email).lower())))
 
+    @override_settings(
+        SOCIALACCOUNT_AUTO_SIGNUP=True,
+        ACCOUNT_SIGNUP_FORM_CLASS=None,
+        ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
+    )
+    def test_get_social_app_model(self):
+        from allauth.socialaccount.test_app.models import SocialAppSwapped
+        self.assertEqual(get_social_app_model(), SocialAppSwapped)
+
+    @override_settings(
+        SOCIALACCOUNT_AUTO_SIGNUP=True,
+        ACCOUNT_SIGNUP_FORM_CLASS=None,
+        ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE,  # noqa
+    )
     def test_swap_in_new_social_app(self):
         SocialApp = get_social_app_model()
         app = SocialApp.objects.filter(provider=self.provider.id).first()
+
+        username = str(random.randrange(1000, 10000000))
+        email = '%s@mail.com' % username
+        user = get_user_model().objects.create(
+            username=username,
+            is_active=True,
+            email=email)
+        account = SocialAccount.objects.create(
+            user=user,
+            provider=self.provider.id,
+            uid='123')
+        token = SocialToken.objects.create(
+            app=app,
+            token='abc',
+            account=account)
         self.assertEquals(app.new_field, 'testing')
