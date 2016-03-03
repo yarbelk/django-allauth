@@ -139,8 +139,11 @@ template as follows::
     account/email/email_confirmation_message.html
 
 If this does not suit your needs, you can hook up your own custom
-mechanism by overriding the `send_mail` method of the account adapter
-(`allauth.account.adapter.DefaultAccountAdapter`).
+mechanism by overriding the `send_mail` and `get_from_email`  methods
+of the account adapter (`allauth.account.adapter.DefaultAccountAdapter`).
+
+`get_from_email` is a hook to let you programmatically define the `from`
+field of the email.
 
 
 Custom Redirects
