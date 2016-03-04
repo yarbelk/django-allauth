@@ -228,7 +228,7 @@ class SocialLogin(object):
     e-mail addresses retrieved from the provider.
     """
 
-    def __init__(self, user=None, account=None, token=None, request=None,
+    def __init__(self, user=None, account=None, token=None,
                  email_addresses=[]):
         if token:
             assert token.account is None or token.account == account
