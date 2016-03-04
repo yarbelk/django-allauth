@@ -34,7 +34,6 @@ matrix:
 branches:
  only:
   - master
-  - new-merge
 script: 
   - coverage run -p manage.py test allauth
   - DJANGO_SETTINGS_MODULE=test_swapping_settings coverage run -p manage.py test allauth
