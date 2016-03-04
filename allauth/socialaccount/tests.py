@@ -457,7 +457,7 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
                (repr(verified_email).lower())))
 
     def test_get_social_app_model(self):
-        from allauth.socialaccount.test_app.models import SocialAppSwapped
+        from test_swappable_app.models import SocialAppSwapped
         self.assertEqual(get_social_app_model(), SocialAppSwapped)
 
     def test_swap_in_new_social_app(self):
@@ -483,5 +483,5 @@ class SwapSocialAppTests(OAuth2TestsMixin, TestCase):
         self.assertEquals(token.app, app)
 
         ## Just to explicitly test that the swapped app is called
-        from allauth.socialaccount.test_app.models import SocialAppSwapped
+        from test_swappable_app.models import SocialAppSwapped
         self.assertTrue(isinstance(app, SocialAppSwapped))

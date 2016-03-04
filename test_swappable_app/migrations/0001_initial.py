@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
         ('socialaccount', '__first__'),
     ]
     dependencies = [
+        ('auth', '0001_initial'),
         ('sites', '0001_initial'),
     ]
 
@@ -44,8 +45,8 @@ class Migration(migrations.Migration):
                 ('date_joined', models.DateTimeField(verbose_name='date joined', auto_now_add=True)),
                 ('extra_data', allauth.socialaccount.fields.JSONField(verbose_name='extra data', default='{}')),
                 ('new_field', models.CharField(max_length=100)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='test_app_socialaccountswapped_set')),
-                ('app', models.ForeignKey(to='test_app.SocialAppSwapped')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='test_swappable_app_socialaccountswapped_set')),
+                ('app', models.ForeignKey(to='test_swappable_app.SocialAppSwapped')),
             ],
             options={
                 'verbose_name': 'social account',
